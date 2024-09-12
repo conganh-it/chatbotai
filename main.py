@@ -1,51 +1,285 @@
-import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, LSTM, Dense
-import numpy as np
+import asyncio
+import ctypes
+import os
+import wikipedia
+import datetime
 import json
+import re
+import webbrowser
+import smtplib
+import requests
+import urllib.request as urllib2
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
+from datetime import date
+import yfinance as yf
+import openai
+from youtubesearchpython import VideosSearch
 
-# Tải dữ liệu huấn luyện
-with open('data.json', 'r', encoding='utf-8') as file:
-    data = json.load(file)
+# Đặt ngôn ngữ Wikipedia và ngôn ngữ sử dụng
+wikipedia.set_lang('vi')
 
-questions = [item['question'] for item in data]
-answers = ['<start> ' + item['answer'] + ' <end>' for item in data]
+# Cài đặt driver Chrome
+path = ChromeDriverManager().install()
 
-# Tokenizer
-tokenizer = tf.keras.preprocessing.text.Tokenizer(filters='')
-tokenizer.fit_on_texts(questions + answers)
-question_sequences = tokenizer.texts_to_sequences(questions)
-answer_sequences = tokenizer.texts_to_sequences(answers)
-maxlen = max(max(len(seq) for seq in question_sequences), max(len(seq) for seq in answer_sequences))
+# Cài đặt OpenAI API
+openai.api_key = 'YOUR_OPENAI_API_KEY'  # Thay thế bằng khóa API của bạn
 
-question_sequences = tf.keras.preprocessing.sequence.pad_sequences(question_sequences, maxlen=maxlen, padding='post')
-answer_sequences = tf.keras.preprocessing.sequence.pad_sequences(answer_sequences, maxlen=maxlen, padding='post')
 
-# Bộ giải mã đầu vào và đầu ra
-decoder_input_data = answer_sequences[:, :-1]
-decoder_target_data = answer_sequences[:, 1:]
+# Hàm nhận văn bản từ người dùng
+def get_text():
+    return input("Bạn: ")
 
-# Tạo mô hình
-latent_dim = 256
-encoder_inputs = Input(shape=(None,))
-encoder_embedding = tf.keras.layers.Embedding(input_dim=len(tokenizer.word_index) + 1, output_dim=latent_dim)(encoder_inputs)
-encoder_lstm = LSTM(latent_dim, return_state=True)
-encoder_outputs, state_h, state_c = encoder_lstm(encoder_embedding)
-encoder_states = [state_h, state_c]
 
-decoder_inputs = Input(shape=(None,))
-decoder_embedding = tf.keras.layers.Embedding(input_dim=len(tokenizer.word_index) + 1, output_dim=latent_dim)(decoder_inputs)
-decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True)
-decoder_outputs, _, _ = decoder_lstm(decoder_embedding, initial_state=encoder_states)
-decoder_dense = Dense(len(tokenizer.word_index) + 1, activation='softmax')
-decoder_outputs = decoder_dense(decoder_outputs)
+# Hàm in ra văn bản trả lời
+def speak(text):
+    print(f"Bot: {text}")
 
-model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy')
 
-model.fit([question_sequences, decoder_input_data], decoder_target_data, epochs=50)
+# Hàm chào hỏi
+def hello(name):
+    day_time = int(datetime.datetime.now().strftime('%H'))
+    if day_time < 12:
+        speak(f"Chào buổi sáng bạn {name}. Chúc bạn một ngày tốt lành.")
+    elif 12 <= day_time < 18:
+        speak(f"Chào buổi chiều bạn {name}. Bạn đã dự định gì cho chiều nay chưa.")
+    else:
+        speak(f"Chào buổi tối bạn {name}. Bạn đã ăn tối chưa nhỉ.")
 
-model.save('chatbot_model.h5')
-tokenizer_json = tokenizer.to_json()
-with open('tokenizer.json', 'w', encoding='utf-8') as file:
-    file.write(tokenizer_json)
+
+# Hàm lấy thời gian hiện tại
+def get_time(text):
+    now = datetime.datetime.now()
+    if "giờ" in text:
+        speak(f'Bây giờ là {now.hour} giờ {now.minute} phút')
+    elif "ngày" in text:
+        speak(f"Hôm nay là ngày {now.day} tháng {now.month} năm {now.year}")
+    else:
+        speak("Bot chưa hiểu ý của bạn. Bạn nói lại được không?")
+
+
+# Hàm cảm ơn
+def thank(text):
+    if "cảm ơn" in text or "thanks" in text:
+        speak('Không có gì, bạn cần mình giúp thêm gì không?')
+
+
+# Hàm mở ứng dụng
+def open_application(text):
+    if "google" in text:
+        speak("Mở Google Chrome")
+        os.startfile('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Google Chrome.lnk')
+    elif "word" in text:
+        speak("Mở Microsoft Word")
+        os.startfile('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Word.lnk')
+    elif "excel" in text:
+        speak("Mở Microsoft Excel")
+        os.startfile('C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Excel.lnk')
+    else:
+        speak("Ứng dụng chưa được cài đặt. Bạn hãy thử lại!")
+
+
+# Hàm mở website
+def open_website(text):
+    reg_ex = re.search('mở (.+)', text)
+    if reg_ex:
+        domain = reg_ex.group(1)
+        url = 'https://www.' + domain
+        webbrowser.open(url)
+        speak("Trang web bạn yêu cầu đã được mở.")
+        return True
+    else:
+        return False
+
+
+# Hàm mở Google và tìm kiếm
+def open_google_and_search(text):
+    search_for = text.split("tìm kiếm", 1)[1]
+    speak('Okay!')
+    driver = webdriver.Chrome(path)
+    driver.get("https://www.google.com")
+    que = driver.find_element("xpath", "//input[@name='q']")
+    que.send_keys(str(search_for))
+    que.send_keys(Keys.RETURN)
+
+
+# Hàm gửi email
+def send_email(text):
+    speak('Bạn gửi email cho ai nhỉ')
+    recipient = get_text()
+    if 'yến' in recipient:
+        speak('Nội dung bạn muốn gửi là gì')
+        content = get_text()
+        mail = smtplib.SMTP('smtp.gmail.com', 587)
+        mail.ehlo()
+        mail.starttls()
+        mail.login('luongngochungcntt@gmail.com', 'hung23081997')
+        mail.sendmail('luongngochungcntt@gmail.com', 'hungdhv97@gmail.com', content.encode('utf-8'))
+        mail.close()
+        speak('Email của bạn vừa được gửi. Bạn check lại email nhé hihi.')
+    else:
+        speak('Bot không hiểu bạn muốn gửi email cho ai. Bạn nói lại được không?')
+
+
+# Hàm lấy thông tin thời tiết hiện tại
+def current_weather():
+    speak("Bạn muốn xem thời tiết ở đâu ạ.")
+    ow_url = "http://api.openweathermap.org/data/2.5/weather?"
+    city = get_text()
+    if not city:
+        return
+    api_key = "1df7d279e27869dccb309c39f5973269"
+    call_url = ow_url + "appid=" + api_key + "&q=" + city + "&units=metric"
+    response = requests.get(call_url)
+    data = response.json()
+    if data["cod"] != "404":
+        city_res = data["main"]
+        current_temperature = city_res["temp"]
+        current_pressure = city_res["pressure"]
+        current_humidity = city_res["humidity"]
+        suntime = data["sys"]
+        sunrise = datetime.datetime.fromtimestamp(suntime["sunrise"])
+        sunset = datetime.datetime.fromtimestamp(suntime["sunset"])
+        wthr = data["weather"]
+        weather_description = wthr[0]["description"]
+        now = datetime.datetime.now()
+        content = f"""
+        Hôm nay là ngày {now.day} tháng {now.month} năm {now.year}
+        Mặt trời mọc vào {sunrise.hour} giờ {sunrise.minute} phút
+        Mặt trời lặn vào {sunset.hour} giờ {sunset.minute} phút
+        Nhiệt độ trung bình là {current_temperature} độ C
+        Áp suất không khí là {current_pressure} héc tơ Pascal
+        Độ ẩm là {current_humidity}%
+        Trời hôm nay {weather_description}. Dự báo mưa rải rác ở một số nơi."""
+        speak(content)
+    else:
+        speak("Không tìm thấy địa chỉ của bạn")
+
+
+# Hàm phát bài hát từ YouTube
+def play_song():
+    speak('Xin mời bạn chọn tên bài hát')
+    mysong = get_text()
+    while True:
+        result = VideosSearch(mysong, limit=1).result()
+        if result['result']:
+            break
+    url = result['result'][0]['link']
+    webbrowser.open(url)
+    speak("Bài hát bạn yêu cầu đã được mở.")
+
+
+# Hàm thay đổi hình nền máy tính
+def change_wallpaper():
+    api_key = 'RF3LyUUIyogjCpQwlf-zjzCf1JdvRwb--SLV6iCzOxw'
+    url = 'https://api.unsplash.com/photos/random?client_id=' + api_key
+    f = urllib2.urlopen(url)
+    json_string = f.read()
+    f.close()
+    parsed_json = json.loads(json_string)
+    photo = parsed_json['urls']['full']
+    urllib2.urlretrieve(photo, "C:/Users/Night Fury/Downloads/a.png")
+    image = os.path.join("C:/Users/Night Fury/Downloads/a.png")
+    ctypes.windll.user32.SystemParametersInfoW(20, 0, image, 3)
+    speak('Hình nền máy tính vừa được thay đổi')
+
+
+# Hàm đọc tin tức
+def read_news():
+    speak("Bạn muốn đọc báo về gì")
+    queue = get_text()
+    params = {
+        'apiKey': '30d02d187f7140faacf9ccd27a1441ad',
+        "q": queue,
+    }
+    api_result = requests.get('http://newsapi.org/v2/top-headlines?', params=params)
+    api_response = api_result.json()
+    if api_response['status'] == "ok":
+        for number, result in enumerate(api_response['articles'], start=1):
+            print(
+                f"""Tin {number}:\nTiêu đề: {result['title']}\nTrích dẫn: {result['description']}\nLink: {result['url']}""")
+            if number <= 3:
+                webbrowser.open(result['url'])
+    else:
+        speak("Không tìm thấy thông tin về chủ đề bạn quan tâm.")
+
+
+# Hàm lấy giá cổ phiếu
+def get_stock_price(ticker):
+    stock = yf.Ticker(ticker)
+    info = stock.info
+    return f"Giá cổ phiếu {ticker} hiện tại là {info.get('last_price', 'Không có thông tin')}"
+
+
+# Hàm tương tác với GPT-3/4 của OpenAI
+async def get_gpt3_response(prompt):
+    response = openai.Completion.create(
+        engine="text-davinci-003",  # Hoặc phiên bản khác như "gpt-3.5-turbo" hoặc "gpt-4"
+        prompt=prompt,
+        max_tokens=150
+    )
+    return response.choices[0].text.strip()
+
+
+# Hàm tra cứu thông tin từ Wikipedia
+def search_wikipedia(query):
+    try:
+        summary = wikipedia.summary(query, sentences=2)
+    except wikipedia.exceptions.DisambiguationError as e:
+        summary = wikipedia.summary(e.options[0], sentences=2)
+    except wikipedia.exceptions.PageError:
+        summary = "Không tìm thấy trang phù hợp trên Wikipedia."
+    return summary
+
+
+# Hàm xử lý câu lệnh
+async def process_command(command):
+    command = command.lower()
+
+    if "chào" in command:
+        speak("Chào bạn! Tôi có thể giúp gì cho bạn?")
+    elif "giờ" in command or "ngày" in command:
+        get_time(command)
+    elif "cảm ơn" in command or "thanks" in command:
+        thank(command)
+    elif "mở" in command:
+        if "google" in command or "chrome" in command or "firefox" in command:
+            open_application(command)
+        elif "website" in command:
+            open_website(command)
+        elif "tìm kiếm" in command:
+            open_google_and_search(command)
+    elif "email" in command:
+        send_email(command)
+    elif "thời tiết" in command:
+        current_weather()
+    elif "bài hát" in command:
+        play_song()
+    elif "hình nền" in command:
+        change_wallpaper()
+    elif "tin tức" in command:
+        read_news()
+    elif "giá cổ phiếu" in command:
+        ticker = re.search(r'giá cổ phiếu (\w+)', command)
+        if ticker:
+            price = get_stock_price(ticker.group(1))
+            speak(price)
+    else:
+        # Xử lý các câu hỏi với Wikipedia
+        response = search_wikipedia(command)
+        speak(response)
+
+
+# Chương trình chính
+async def main():
+    while True:
+        user_input = get_text()
+        if user_input.lower() in ["dừng", "tạm dừng", "quit", "exit"]:
+            speak("Tạm biệt!")
+            break
+        await process_command(user_input)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
