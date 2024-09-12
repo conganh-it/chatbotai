@@ -4,22 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5e74c2c9-5233-484a-9fb9-d1161e488040" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/chatbotai.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bot.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chatbot.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/chatbottn.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/d.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/hieu.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/notify.mp3" afterDir="false" />
-    </list>
+    <list default="true" id="5e74c2c9-5233-484a-9fb9-d1161e488040" name="Changes" comment="tro-ly-ao-ai" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -48,23 +33,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.chatbot.executor": "Run",
-    "Python.chatbot_app.executor": "Run",
-    "Python.chatbottn.executor": "Run",
-    "Python.create_chatbot_model.executor": "Run",
-    "Python.d.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.test 2.executor": "Run",
-    "Python.test.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.chatbot.executor&quot;: &quot;Run&quot;,
+    &quot;Python.chatbot_app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.chatbottn.executor&quot;: &quot;Run&quot;,
+    &quot;Python.create_chatbot_model.executor&quot;: &quot;Run&quot;,
+    &quot;Python.d.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test 2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\chinh\source\repos\chatbotai" />
@@ -111,6 +96,27 @@
       <option name="presentableId" value="Default" />
       <updated>1720125708041</updated>
     </task>
+    <task id="LOCAL-00001" summary="tro-ly-ao-ai">
+      <option name="closed" value="true" />
+      <created>1723820564540</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1723820564540</updated>
+    </task>
+    <task id="LOCAL-00002" summary="tro-ly-ao-ai">
+      <option name="closed" value="true" />
+      <created>1723820573037</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1723820573037</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="tro-ly-ao-ai" />
+    <option name="LAST_COMMIT_MESSAGE" value="tro-ly-ao-ai" />
   </component>
 </project>
